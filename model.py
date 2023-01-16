@@ -220,10 +220,31 @@ class RobertaModel(FairseqEncoderModel):
             help="",
         )
         parser.add_argument(
-            "--quant-bitwidth",
+            "--quant-bitwidth-f",
             type=int,
-            nargs='+'
-            default=8 4 8 8,
+            metavar="D",
+            default=16,
+            help="",
+        )
+        parser.add_argument(
+            "--quant-bitwidth-si",
+            type=int,
+            metavar="D",
+            default=4,
+            help="",
+        )
+        parser.add_argument(
+            "--quant-bitwidth-sw",
+            type=int,
+            metavar="D",
+            default=4,
+            help="",
+        )
+        parser.add_argument(
+            "--quant-bitwidth-g",
+            type=int,
+            metavar="D",
+            default=16,
             help="",
         )
         parser.add_argument(
@@ -697,7 +718,11 @@ def base_architecture(args):
 def roberta_base_architecture(args):
     args.quant_linear = getattr(args, "quant_linear", True)
     args.quant_scheme = getattr(args, "quant_scheme", "fixed")
-    args.quant_bitwidth = getattr(args, "quant_bitwidth", [8,4,8,8])
+    args.quant_bitwidth_f = getattr(args, "quant_bitwidth_f", 16)
+    args.quant_bitwidth_si = getattr(args, "quant_bitwidth_si", 4)
+    args.quant_bitwidth_sw = getattr(args, "quant_bitwidth_sw", 4)
+    args.quant_bitwidth_g = getattr(args, "quant_bitwidth_g", 16)
+    args.quant_bitwidth = [args.quant_bitwidth_f, args.quant_bitwidth_si, args.quant_bitwidth_sw, args.quant_bitwidth_g]
     args.quant_bucketsize = getattr(args, "quant_bucketsize", 16)
     args.dynamic_stashing = getattr(args, "dynamic_stashing", 0)
     
