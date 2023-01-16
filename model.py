@@ -25,22 +25,12 @@ from fairseq.modules.quant_noise import quant_noise as apply_quant_noise_
 from fairseq.modules.transformer_sentence_encoder import init_bert_params
 from fairseq.utils import safe_getattr, safe_hasattr
 
-from .hub_interface import RobertaHubInterface
 
 logger = logging.getLogger(__name__)
 
 
-@register_model("roberta")
+@register_model("qroberta")
 class RobertaModel(FairseqEncoderModel):
-    @classmethod
-    def hub_models(cls):
-        return {
-            "roberta.base": "http://dl.fbaipublicfiles.com/fairseq/models/roberta.base.tar.gz",
-            "roberta.large": "http://dl.fbaipublicfiles.com/fairseq/models/roberta.large.tar.gz",
-            "roberta.large.mnli": "http://dl.fbaipublicfiles.com/fairseq/models/roberta.large.mnli.tar.gz",
-            "roberta.large.wsc": "http://dl.fbaipublicfiles.com/fairseq/models/roberta.large.wsc.tar.gz",
-        }
-
     def __init__(self, args, encoder):
         super().__init__(encoder)
         self.args = args
@@ -624,7 +614,7 @@ class RobertaEncoder(FairseqEncoder):
         return self.args.max_positions
 
 
-@register_model_architecture("roberta", "roberta")
+@register_model_architecture("qroberta", "qroberta")
 def base_architecture(args):
     args.encoder_layers = safe_getattr(args, "encoder_layers", 12)
     args.encoder_embed_dim = safe_getattr(args, "encoder_embed_dim", 768)
@@ -669,32 +659,15 @@ def base_architecture(args):
         args, "spectral_norm_classification_head", False
     )
 
-
-@register_model_architecture("roberta", "roberta_prenorm")
-def roberta_prenorm_architecture(args):
-    args.layernorm_embedding = safe_getattr(args, "layernorm_embedding", False)
-    args.encoder_normalize_before = safe_getattr(args, "encoder_normalize_before", True)
-    base_architecture(args)
-
-
-@register_model_architecture("roberta", "roberta_base")
+@register_model_architecture("qroberta", "qroberta_base")
 def roberta_base_architecture(args):
     base_architecture(args)
 
 
-@register_model_architecture("roberta", "roberta_large")
+@register_model_architecture("qroberta", "qroberta_large")
 def roberta_large_architecture(args):
     args.encoder_layers = safe_getattr(args, "encoder_layers", 24)
     args.encoder_embed_dim = safe_getattr(args, "encoder_embed_dim", 1024)
     args.encoder_ffn_embed_dim = safe_getattr(args, "encoder_ffn_embed_dim", 4096)
-    args.encoder_attention_heads = safe_getattr(args, "encoder_attention_heads", 16)
-    base_architecture(args)
-
-
-@register_model_architecture("roberta", "xlm")
-def xlm_architecture(args):
-    args.encoder_layers = safe_getattr(args, "encoder_layers", 16)
-    args.encoder_embed_dim = safe_getattr(args, "encoder_embed_dim", 1280)
-    args.encoder_ffn_embed_dim = safe_getattr(args, "encoder_ffn_embed_dim", 1280 * 4)
     args.encoder_attention_heads = safe_getattr(args, "encoder_attention_heads", 16)
     base_architecture(args)
