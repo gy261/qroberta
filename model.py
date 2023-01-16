@@ -19,7 +19,7 @@ from fairseq.models import (
     register_model,
     register_model_architecture,
 )
-from fairseq.models.transformer import DEFAULT_MIN_PARAMS_TO_WRAP, TransformerEncoder
+from fairseq.models.qtransformer import DEFAULT_MIN_PARAMS_TO_WRAP, TransformerEncoder
 from fairseq.modules import LayerNorm
 from fairseq.modules.quant_noise import quant_noise as apply_quant_noise_
 from fairseq.modules.transformer_sentence_encoder import init_bert_params
@@ -206,7 +206,41 @@ class RobertaModel(FairseqEncoderModel):
             default=-1,
             help="number of feedforward blocks to remove in each transformer layer, -1 means keeping all ffn blocks",
         )
-
+        parser.add_argument(
+            "--quant-linear",
+            action="store_false",
+            default=True,
+            help="",
+        )
+        parser.add_argument(
+            "--quant-scheme",
+            type=str,
+            metavar="D",
+            default="fixed",
+            help="",
+        )
+        parser.add_argument(
+            "--quant-bitwidth",
+            type=int,
+            nargs='+'
+            default=8 4 8 8,
+            help="",
+        )
+        parser.add_argument(
+            "--quant_bucketsize",
+            type=int,
+            metavar="D",
+            default=16,
+            help="",
+        )
+        parser.add_argument(
+            "--dynamic-stashing",
+            type=int,
+            metavar="D",
+            default=0,
+            help="",
+        )      
+       
     @classmethod
     def build_model(cls, args, task):
         """Build a new model instance."""
@@ -658,6 +692,20 @@ def base_architecture(args):
     args.spectral_norm_classification_head = safe_getattr(
         args, "spectral_norm_classification_head", False
     )
+
+@register_model_architecture("qroberta", "qroberta_use")
+def roberta_base_architecture(args):
+    args.quant_linear = getattr(args, "quant_linear", True)
+    args.quant_scheme = getattr(args, "quant_scheme", "fixed")
+    args.quant_bitwidth = getattr(args, "quant_bitwidth", [8,4,8,8])
+    args.quant_bucketsize = getattr(args, "quant_bucketsize", 16)
+    args.dynamic_stashing = getattr(args, "dynamic_stashing", 0)
+    
+    args.quant_config = {"qscheme": args.quant_scheme, "k": args.quant_percentile, "qforward": args.quant_bitwidth[0], "qstore_input": args.quant_bitwidth[1],
+                         "qstore_weight": args.quant_bitwidth[2], "qgradout": args.quant_bitwidth[3], "qbucketsize": args.quant_bucketsize}
+    
+    base_architecture(args)
+    
 
 @register_model_architecture("qroberta", "qroberta_base")
 def roberta_base_architecture(args):
